@@ -115,7 +115,7 @@ FLOW_CONDUCTIVITY_TRIGGER = "conductivity_trigger"
 FLOW_FORCE_SPECIES_UPDATE = "force_update"
 
 ICON_CONDUCTIVITY = "mdi:spa-outline"
-ICON_DLI = "mdi:counter"
+ICON_DLI = "mdi:weather-sunny"
 ICON_HUMIDITY = "mdi:water-percent"
 ICON_ILLUMINANCE = "mdi:brightness-6"
 ICON_MOISTURE = "mdi:water"
