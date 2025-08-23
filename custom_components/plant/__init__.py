@@ -148,6 +148,66 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     #
+    # Register replace_sensor service and websocket handler
+    await _async_register_services_and_ws_handler(hass)
+    plant.async_schedule_update_ha_state(True)
+
+    # Lets add the dummy sensors automatically if we are testing stuff
+    if USE_DUMMY_SENSORS is True:
+        for sensor in plant.meter_entities:
+            if sensor.external_sensor is None:
+                await hass.services.async_call(
+                    domain=DOMAIN,
+                    service=SERVICE_REPLACE_SENSOR,
+                    service_data={
+                        "meter_entity": sensor.entity_id,
+                        "new_sensor": sensor.entity_id.replace(
+                            "sensor.", "sensor.dummy_"
+                        ),
+                    },
+                    blocking=False,
+                    limit=30,
+                )
+
+    return True
+
+
+async def _plant_add_to_device_registry(
+    hass: HomeAssistant, plant_entities: list[Entity], device_id: str
+) -> None:
+    """Add all related entities to the correct device_id"""
+
+    # There must be a better way to do this, but I just can't find a way to set the
+    # device_id when adding the entities.
+    erreg = er.async_get(hass)
+    for entity in plant_entities:
+        erreg.async_update_entity(entity.registry_entry.entity_id, device_id=device_id)
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+        _LOGGER.info(hass.data[DOMAIN])
+        for entry_id in list(hass.data[DOMAIN].keys()):
+            if len(hass.data[DOMAIN][entry_id]) == 0:
+                _LOGGER.info("Removing entry %s", entry_id)
+                del hass.data[DOMAIN][entry_id]
+        if len(hass.data[DOMAIN]) == 0:
+            _LOGGER.info("Removing domain %s", DOMAIN)
+            hass.services.async_remove(DOMAIN, SERVICE_REPLACE_SENSOR)
+            del hass.data[DOMAIN]
+    return unload_ok
+
+
+async def _async_register_services_and_ws_handler(
+    hass: HomeAssistant
+) -> None:
+    """Register services and websocket handlers."""
+
+    #
     # Service call to replace sensors
     async def replace_sensor(call: ServiceCall) -> None:
         """Replace a sensor entity within a plant device"""
@@ -205,56 +265,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
     hass.services.async_register(DOMAIN, SERVICE_REPLACE_SENSOR, replace_sensor)
     websocket_api.async_register_command(hass, ws_get_info)
-    plant.async_schedule_update_ha_state(True)
-
-    # Lets add the dummy sensors automatically if we are testing stuff
-    if USE_DUMMY_SENSORS is True:
-        for sensor in plant.meter_entities:
-            if sensor.external_sensor is None:
-                await hass.services.async_call(
-                    domain=DOMAIN,
-                    service=SERVICE_REPLACE_SENSOR,
-                    service_data={
-                        "meter_entity": sensor.entity_id,
-                        "new_sensor": sensor.entity_id.replace(
-                            "sensor.", "sensor.dummy_"
-                        ),
-                    },
-                    blocking=False,
-                    limit=30,
-                )
-
-    return True
-
-
-async def _plant_add_to_device_registry(
-    hass: HomeAssistant, plant_entities: list[Entity], device_id: str
-) -> None:
-    """Add all related entities to the correct device_id"""
-
-    # There must be a better way to do this, but I just can't find a way to set the
-    # device_id when adding the entities.
-    erreg = er.async_get(hass)
-    for entity in plant_entities:
-        erreg.async_update_entity(entity.registry_entry.entity_id, device_id=device_id)
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-        _LOGGER.info(hass.data[DOMAIN])
-        for entry_id in list(hass.data[DOMAIN].keys()):
-            if len(hass.data[DOMAIN][entry_id]) == 0:
-                _LOGGER.info("Removing entry %s", entry_id)
-                del hass.data[DOMAIN][entry_id]
-        if len(hass.data[DOMAIN]) == 0:
-            _LOGGER.info("Removing domain %s", DOMAIN)
-            hass.services.async_remove(DOMAIN, SERVICE_REPLACE_SENSOR)
-            del hass.data[DOMAIN]
-    return unload_ok
 
 
 @websocket_api.websocket_command(
