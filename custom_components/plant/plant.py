@@ -17,6 +17,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
 
 from .const import (
@@ -155,18 +156,17 @@ class PlantDevice(Entity):
     @property
     def device_id(self) -> str:
         """The device ID used for all the entities"""
-        return self._device_id
+        return self.device_entry.id
 
     @property
-    def device_info(self) -> dict:
+    def device_info(self) -> DeviceInfo:
         """Device info for devices"""
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "config_entries": self._config_entries,
-            "model": self.display_species,
-            "manufacturer": self.data_source,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.unique_id)},
+            name=self.name,
+            model=self.display_species,
+            manufacturer=self.data_source,
+        )
 
     @property
     def illuminance_trigger(self) -> bool:
@@ -521,30 +521,28 @@ class PlantDevice(Entity):
             new_state = STATE_UNKNOWN
 
         self._attr_state = new_state
-        self.update_registry()
 
     @property
     def data_source(self) -> str | None:
         """Currently unused. For future use"""
         return None
 
-    def update_registry(self) -> None:
-        """Update registry with correct data"""
-        # Is there a better way to add an entity to the device registry?
+    def update_device_registry(self) -> None:
+        """
+        Update device registry with new data.
+
+        Invoke this method when information feeding into self.device_info
+        (namely self.name, self.display_species or self.data_source)
+        has changed and the device should be updated.
+        """
 
         device_registry = dr.async_get(self._hass)
         device_registry.async_get_or_create(
             config_entry_id=self._config.entry_id,
-            identifiers={(DOMAIN, self.unique_id)},
-            name=self.name,
-            model=self.display_species,
-            manufacturer=self.data_source,
+            **self.device_info,
         )
         if self._device_id is None:
             device = device_registry.async_get_device(
                 identifiers={(DOMAIN, self.unique_id)}
             )
             self._device_id = device.id
-
-    async def async_added_to_hass(self) -> None:
-        self.update_registry()

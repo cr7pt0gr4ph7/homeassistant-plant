@@ -13,7 +13,6 @@ from homeassistant.const import (
     ATTR_NAME,
 )
 from homeassistant.core import HomeAssistant, ServiceCall, callback
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_component import EntityComponent
 
 from .const import (
@@ -96,13 +95,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await component.async_setup_entry(entry)
     plant = hass.data[DOMAIN][entry.entry_id][ATTR_PLANT]
 
-    # Add the rest of the entities to device registry together with plant
-    device_id = plant.device_id
-    await _plant_add_to_device_registry(hass, plant_entities, device_id)
-    # await _plant_add_to_device_registry(hass, plant.integral_entities, device_id)
-    # await _plant_add_to_device_registry(hass, plant.threshold_entities, device_id)
-    # await _plant_add_to_device_registry(hass, plant.meter_entities, device_id)
-
     # Create the sensor and number entities
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -129,18 +121,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
                 )
 
     return True
-
-
-async def _plant_add_to_device_registry(
-    hass: HomeAssistant, plant_entities: list[Entity], device_id: str
-) -> None:
-    """Add all related entities to the correct device_id"""
-
-    # There must be a better way to do this, but I just can't find a way to set the
-    # device_id when adding the entities.
-    erreg = er.async_get(hass)
-    for entity in plant_entities:
-        erreg.async_update_entity(entity.registry_entry.entity_id, device_id=device_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
