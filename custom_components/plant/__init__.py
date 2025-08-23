@@ -89,17 +89,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hass.data[DOMAIN].setdefault(entry.entry_id, {})
     _LOGGER.debug("Setting up config entry %s: %s", entry.entry_id, entry)
 
-    plant = PlantDevice(hass, entry)
-    hass.data[DOMAIN][entry.entry_id][ATTR_PLANT] = plant
-
-    plant_entities = [
-        plant,
-    ]
-
     # Add all the entities to Hass
     component = EntityComponent(_LOGGER, DOMAIN, hass)
     await component.async_setup_entry(entry)
-    await component.async_add_entities(plant_entities)
+    plant = hass.data[DOMAIN][entry.entry_id][ATTR_PLANT]
 
     # Add the rest of the entities to device registry together with plant
     device_id = plant.device_id

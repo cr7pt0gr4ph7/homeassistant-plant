@@ -57,8 +57,15 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up Plant from a config entry."""
-    # The actual registration is currently being performed in __init__.async_setup_entry
-    pass
+    plant = PlantDevice(hass, entry)
+
+    # Store as runtime data
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN].setdefault(entry.entry_id, {})
+    hass.data[DOMAIN][entry.entry_id][ATTR_PLANT] = plant
+
+    # Add Plant entity to Hass
+    async_add_entities([plant])
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
