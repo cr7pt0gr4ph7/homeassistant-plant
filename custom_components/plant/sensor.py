@@ -210,6 +210,7 @@ class PlantCurrentStatus(RestoreSensor):
 
     def async_track_entity(self, entity_id: str) -> None:
         """Track state_changed of certain entities"""
+        # TODO: Unsubscribe when changing the external sensor
         if entity_id and entity_id not in self._tracker:
             async_track_state_change_event(
                 self._hass,
