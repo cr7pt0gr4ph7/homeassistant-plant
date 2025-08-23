@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import traceback
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -15,7 +16,7 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
@@ -58,6 +59,7 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up Plant from a config entry."""
+    _LOGGER.warn("async_setup_entry: %s", traceback.format_stack())
     plant = PlantDevice(hass, entry)
 
     # Store as runtime data
@@ -72,11 +74,22 @@ async def async_setup_entry(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    _LOGGER.warn("async_unload_entry: %s", traceback.format_stack())
     return True
 
 
 class PlantDevice(Entity):
     """Base device for plants"""
+
+    @callback
+    def add_to_platform_start(
+        self,
+        hass: HomeAssistant,
+        platform: EntityPlatform,
+        parallel_updates: asyncio.Semaphore | None,
+    ) -> None:
+        _LOGGER.warn("add_to_platform_start: %s", traceback.format_stack())
+        super().add_to_platform_start(hass, platform, parallel_updates)
 
     def __init__(self, hass: HomeAssistant, config: ConfigEntry) -> None:
         """Initialize the Plant component."""
@@ -161,12 +174,14 @@ class PlantDevice(Entity):
     @property
     def device_info(self) -> DeviceInfo:
         """Device info for devices"""
-        return DeviceInfo(
+        res = DeviceInfo(
             identifiers={(DOMAIN, self.unique_id)},
             name=self.name,
             model=self.display_species,
             manufacturer=self.data_source,
         )
+        _LOGGER.warn("Device Info: %s | %s", res, traceback.format_stack())
+        return res
 
     @property
     def illuminance_trigger(self) -> bool:
