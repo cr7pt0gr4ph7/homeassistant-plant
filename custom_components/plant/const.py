@@ -1,5 +1,11 @@
 """Constants"""
 
+# Use this during testing to generate some dummy-sensors
+# to provide random readings for temperature, moisture etc.
+#
+SETUP_DUMMY_SENSORS = False
+USE_DUMMY_SENSORS = False
+
 DOMAIN = "plant"
 DOMAIN_SENSOR = "sensor"
 DOMAIN_PLANTBOOK = "openplantbook"

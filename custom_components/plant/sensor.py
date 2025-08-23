@@ -43,7 +43,6 @@ from homeassistant.helpers.entity import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from . import SETUP_DUMMY_SENSORS
 from .const import (
     ATTR_CONDUCTIVITY,
     ATTR_DLI,
@@ -67,6 +66,7 @@ from .const import (
     ICON_MOISTURE,
     ICON_PPFD,
     ICON_TEMPERATURE,
+    SETUP_DUMMY_SENSORS,
     UNIT_CONDUCTIVITY,
     UNIT_DLI,
     UNIT_PPFD,

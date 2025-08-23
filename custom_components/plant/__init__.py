@@ -61,17 +61,12 @@ from .const import (
     SERVICE_REPLACE_SENSOR,
     STATE_HIGH,
     STATE_LOW,
+    USE_DUMMY_SENSORS,
 )
 from .plant_helpers import PlantHelper
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.NUMBER, Platform.SENSOR]
-
-# Use this during testing to generate some dummy-sensors
-# to provide random readings for temperature, moisture etc.
-#
-SETUP_DUMMY_SENSORS = False
-USE_DUMMY_SENSORS = False
 
 # Removed.
 # Have not been used for a long time
