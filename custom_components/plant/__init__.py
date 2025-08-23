@@ -98,6 +98,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
     # Add all the entities to Hass
     component = EntityComponent(_LOGGER, DOMAIN, hass)
+    await component.async_setup_entry(entry)
     await component.async_add_entities(plant_entities)
 
     # Add the rest of the entities to device registry together with plant

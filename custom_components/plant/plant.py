@@ -53,6 +53,19 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+):
+    """Set up Plant from a config entry."""
+    # The actual registration is currently being performed in __init__.async_setup_entry
+    pass
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return True
+
+
 class PlantDevice(Entity):
     """Base device for plants"""
 
