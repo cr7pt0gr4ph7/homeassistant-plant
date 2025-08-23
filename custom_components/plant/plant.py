@@ -63,6 +63,7 @@ async def async_setup_entry(
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault(entry.entry_id, {})
     hass.data[DOMAIN][entry.entry_id][ATTR_PLANT] = plant
+    entry.runtime_data = plant
 
     # Add Plant entity to Hass
     async_add_entities([plant])
