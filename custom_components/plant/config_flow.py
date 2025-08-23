@@ -620,5 +620,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             )
 
             hass.config_entries.async_update_entry(entry, data=data, options=options)
+
         _LOGGER.debug("Update plant options done for %s", entry.entry_id)
-        self.plant.update_registry()
+        self.plant.update_device_registry()
