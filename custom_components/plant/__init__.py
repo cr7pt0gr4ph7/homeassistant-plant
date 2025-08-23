@@ -17,6 +17,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_component import EntityComponent
 
 from .const import (
+    ATTR_COMPONENT,
     ATTR_PLANT,
     ATTR_SENSORS,
     DOMAIN,
@@ -91,6 +92,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
     # Add all the entities to Hass
     component = EntityComponent(_LOGGER, DOMAIN, hass)
+    hass.data[DOMAIN][entry.entry_id][ATTR_COMPONENT] = component
     await component.async_setup_entry(entry)
     plant = hass.data[DOMAIN][entry.entry_id][ATTR_PLANT]
 
@@ -143,7 +145,13 @@ async def _plant_add_to_device_registry(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    # Unload the Plant entity
+    component = hass.data[DOMAIN][entry.entry_id][ATTR_COMPONENT]
+    unload_ok = not component is None and await component.async_unload_entry(entry)
+
+    # Unload all other entities
+    if unload_ok:
+        unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
@@ -156,6 +164,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.info("Removing domain %s", DOMAIN)
             hass.services.async_remove(DOMAIN, SERVICE_REPLACE_SENSOR)
             del hass.data[DOMAIN]
+
     return unload_ok
 
 

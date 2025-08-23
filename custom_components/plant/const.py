@@ -37,6 +37,7 @@ ATTR_PLANT = "plant"
 ATTR_SPECIES = "species"
 ATTR_IMAGE = "image"
 ATTR_SEARCH_FOR = "search_for"
+ATTR_COMPONENT = "component"
 
 
 ATTR_MAX_ILLUMINANCE_HISTORY = "max_illuminance"
