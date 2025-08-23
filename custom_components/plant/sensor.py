@@ -14,7 +14,11 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.components.utility_meter.const import DAILY
+from homeassistant.components.utility_meter.const import (
+    DAILY,
+    DATA_TARIFF_SENSORS,
+    DATA_UTILITY,
+)
 from homeassistant.components.utility_meter.sensor import UtilityMeterSensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -126,11 +130,19 @@ async def async_setup_entry(
 
     plant.add_dli(dli=pdli)
 
+    # Set up utility sensor registration for DLI sensor
+    hass.data.setdefault(DATA_UTILITY, {})
+    hass.data[DATA_UTILITY].setdefault(entry.entry_id, {})
+    hass.data[DATA_UTILITY][entry.entry_id].setdefault(DATA_TARIFF_SENSORS, [])
+    hass.data[DATA_UTILITY][entry.entry_id][DATA_TARIFF_SENSORS].append(pdli)
+
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    # Unload utility sensor registration for DLI sensor
+    hass.data[DATA_UTILITY].pop(entry.entry_id)
     return True
 
 

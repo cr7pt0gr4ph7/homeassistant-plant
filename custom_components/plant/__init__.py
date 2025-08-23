@@ -9,10 +9,6 @@ import logging
 import voluptuous as vol
 
 from homeassistant.components import websocket_api
-from homeassistant.components.utility_meter.const import (
-    DATA_TARIFF_SENSORS,
-    DATA_UTILITY,
-)
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
     Platform,
@@ -157,13 +153,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     #
-    # Set up utility sensor
-    hass.data.setdefault(DATA_UTILITY, {})
-    hass.data[DATA_UTILITY].setdefault(entry.entry_id, {})
-    hass.data[DATA_UTILITY][entry.entry_id].setdefault(DATA_TARIFF_SENSORS, [])
-    hass.data[DATA_UTILITY][entry.entry_id][DATA_TARIFF_SENSORS].append(plant.dli)
-
-    #
     # Service call to replace sensors
     async def replace_sensor(call: ServiceCall) -> None:
         """Replace a sensor entity within a plant device"""
@@ -261,7 +250,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
-        hass.data[DATA_UTILITY].pop(entry.entry_id)
         _LOGGER.info(hass.data[DOMAIN])
         for entry_id in list(hass.data[DOMAIN].keys()):
             if len(hass.data[DOMAIN][entry_id]) == 0:
